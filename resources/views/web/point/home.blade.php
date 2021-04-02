@@ -238,5 +238,5 @@
             }
         }
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtXvT8O3UeHz1G-fqYGeUYnFoBBp7wndE&callback=markMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=&callback=markMap"></script>
 @endsection
