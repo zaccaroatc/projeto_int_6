@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Web;
 use App\Entities\News;
 use App\Entities\Point;
 use App\Http\Controllers\Controller;
-use App\Support\Cropper;
-use Illuminate\Http\Request;
 
 class WebController extends Controller
 {
@@ -43,7 +41,7 @@ class WebController extends Controller
     public function showSingle($id)
     {
         $notice = News::where('id', $id)->with('point')->first();
-        $related = News::where('point_id', $notice->pointApi->id)->where('id' ,'<>', $id)->get();
+        $related = News::where('point_id', $notice->point->id)->where('id' ,'<>', $id)->get();
 
         return view('web.point.single',[
             'notice' => $notice,
