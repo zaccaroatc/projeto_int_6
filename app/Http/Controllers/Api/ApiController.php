@@ -5,14 +5,46 @@ namespace App\Http\Controllers\Api;
 use App\Entities\News;
 use App\Entities\Point;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class ApiController extends Controller
 {
     public function home()
     {
-        $points = Point::with('news', 'photos');
+        if(!$point = Point::with('news', 'photos')->get()->map(function($data){
+            return [
+                'id' => $data->id,
+                'cta' => $data->cta,
+                'description' => $data->description,
+                'address' => $data->address,
+                'tel' => $data->tel,
+                'lat' => explode(',', $data->geolocation)[0],
+                'long' => explode(',', $data->geolocation)[1],
+                'news' => $data->news->map(function($notice){
+                    return [
+                        'id' => $notice->id,
+                        'slug' => $notice->slug,
+                        'title' => $notice->title,
+                        'cover' => url(Storage::url($notice->cover)),
+                        'content' => $notice->content
+                    ];
+                }),
+                'photos' => $data->photos()->common()->get()->map(function($photo){
+                    return [
+                        'id' => $photo->id,
+                        'path' => url(Storage::url($photo->path)),
+                        'type' => $photo->type,
+                        'description' => $photo->description,
+                    ];
+                })
+            ];
+        })){
+            return response()->error('Esse ID não corresponde a nenhum dos Pontos cadastrados', 200);
+        }
 
-        return response()->success($points->get(),'Lista dos Pontos de Visitação', 200);
+        return response()->success([
+            'point' => $point,
+        ], 'Lista dos Pontos de Visitação', 200);
     }
 
     public function showPoint($id)
@@ -31,14 +63,14 @@ class ApiController extends Controller
                         'id' => $notice->id,
                         'slug' => $notice->slug,
                         'title' => $notice->title,
-                        'cover' => url($notice->cover),
+                        'cover' => url(Storage::url($notice->cover)),
                         'content' => $notice->content
                     ];
                 }),
-                'photos' => $data->photos->map(function($photo){
+                'photos' => $data->photos()->common()->get()->map(function($photo){
                     return [
                         'id' => $photo->id,
-                        'path' => url($photo->path),
+                        'path' => url(Storage::url($photo->path)),
                         'type' => $photo->type,
                         'description' => $photo->description,
                     ];
@@ -64,7 +96,7 @@ class ApiController extends Controller
                         'id' => $notice->id,
                         'slug' => $notice->slug,
                         'title' => $notice->title,
-                        'cover' => url($notice->cover),
+                        'cover' => url(Storage::url($notice->cover)),
                         'content' => $notice->content
                     ];
                 })
@@ -87,14 +119,14 @@ class ApiController extends Controller
                 'point' => $data->point->cta,
                 'slug' => $data->slug,
                 'title' => $data->title,
-                'cover' => url($data->cover),
+                'cover' => url(Storage::url($data->cover)),
                 'content' => $data->content,
                 'related' => News::where('point_id', $data->point->id)->where('id' ,'<>', $id)->get()->map(function($related_notice){
                     return [
                         'id' =>$related_notice->id,
                         'slug' => $related_notice->slug,
                         'title' => $related_notice->title,
-                        'cover' => url($related_notice->cover),
+                        'cover' => url(Storage::url($related_notice->cover)),
                         'content' => $related_notice->content
                     ];
                 })
